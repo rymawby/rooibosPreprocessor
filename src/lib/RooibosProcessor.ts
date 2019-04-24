@@ -3,6 +3,7 @@ import * as Debug from 'debug';
 import FileDescriptor from './FileDescriptor';
 import FunctionMap from './FunctionMap';
 import { RuntimeConfig } from './RuntimeConfig';
+import { SSL_OP_SSLEAY_080_CLIENT_DH_BUG } from 'constants';
 
 const debug = Debug('RooibosProcessor');
 
@@ -11,6 +12,7 @@ export default class RooibosProcessor {
     if (!testsPath) {
       throw new Error('testsPath is empty');
     }
+    console.log("my testspaths are here " + testsPath)
     this._testsPath = testsPath;
     this._rootPath = rootPath;
     this._outputPath = outputPath || this._rootPath;
@@ -48,7 +50,11 @@ export default class RooibosProcessor {
 
     debug(`Adding runtimeConfig `);
     this.runtimeConfig = new RuntimeConfig(functionMap);
-    this.runtimeConfig.processPath(this.testsPath, this._rootPath);
+    
+    let testPaths = this.createPathsList(this.testsPath)
+    for (let i = 0; i < testPaths.length; i++) {
+      this.runtimeConfig.processPath(String(testPaths[i]), this._rootPath);
+    }
 
     debug(`Adding function map `);
     outputText += '\n' + functionMap.getFunctionMapText();
@@ -66,6 +72,12 @@ export default class RooibosProcessor {
     this.warnings.concat(this.runtimeConfig.warnings);
     this.reportErrors();
     this.reportWarnings();
+  }
+
+  public createPathsList(testPath: String) : string[] {
+    let testsPath:String = testPath.split(", ").join(",");
+    testsPath = testsPath.split(" ,").join(",");
+    return testsPath.split(",");
   }
 
   public reportErrors() {
